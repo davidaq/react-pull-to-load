@@ -1,0 +1,19 @@
+{
+  "name": "web-scroll-to-load",
+  "version": "1.0.0",
+  "description": "A JavaScript library providing pull to refresh and scroll to load more for mobile web apps.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://davidaq:123@dav@github.com/davidaq/web-scroll-to-load.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/davidaq/web-scroll-to-load/issues"
+  },
+  "homepage": "https://github.com/davidaq/web-scroll-to-load#readme"
+}
