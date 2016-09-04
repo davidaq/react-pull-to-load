@@ -160,7 +160,11 @@
           transform: translate,
           webkitTransform: translate,
         });
-        setTimeout(function() {
+        var refreshInterval = setInterval(function() {
+          if (loadingMore) {
+            return;
+          }
+          clearInterval(refreshInterval);
           if (destroyed) {
             return;
           }
@@ -168,6 +172,7 @@
             if (destroyed) {
               return;
             }
+            noMore = false;
             dragState = null;
             onTouchEnd();
           });
@@ -201,6 +206,9 @@
           display: '',
         });
         options.onLoadMore(function(canLoadNoMore) {
+          if (destroyed) {
+            return;
+          }
           assign(options.footer.style, {
             display: 'none',
           });
@@ -232,6 +240,8 @@
       if (destroyed) {
         return;
       }
+      dragState = null;
+      loadingMore = false;
       destroyed = true;
       window.removeEventListener('resize', onResize);
       options.wrap.removeEventListener('touchstart', onTouchStart, true);

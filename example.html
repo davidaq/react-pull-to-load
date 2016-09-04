@@ -64,7 +64,13 @@
         },
         onLoadMore: function(done) {
           setTimeout(function() {
-            done();
+            var start = ulDom.children.length;
+            for (var i = 1; i <= 50; i++) {
+              var li = document.createElement('li');
+              li.innerHTML = 'Some content #' + (i + start);
+              ulDom.appendChild(li);
+            }
+            done(ulDom.children.length >= 200);
           }, 2000);
         },
         onHeaderStateChange: function(state) {
