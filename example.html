@@ -10,34 +10,16 @@
         padding: 0;
         margin: 0;
       }
-      #main {
-        background: #AAA;
-      }
-      #header, #footer {
-        height: 50px;
-        line-height: 50px;
-        color: #FFF;
-        text-align: center;
-        font-weight: bold;
-      }
       #content {
         background: #FFF;
       }
     </style>
   </head>
   <body>
-    <div id="main">
-      <div id="header">
-        Pull to Refresh
-      </div>
-      <div id="content">
-        <label></label>
-        <ul>
-        </ul>
-      </div>
-      <div id="footer">
-        Loading more
-      </div>
+    <div id="content">
+      <label></label>
+      <ul>
+      </ul>
     </div>
     <script type="text/javascript" src="index.js"></script>
     <script type="text/javascript">
@@ -54,10 +36,7 @@
       }
       setupContent();
       var inst = WebScrollToLoad({
-        wrap: '#main',
-        header: '#header',
         content: '#content',
-        footer: '#footer',
         onRefresh: function(done) {
           setupContent();
           done();
@@ -72,19 +51,6 @@
             }
             done(ulDom.children.length >= 200);
           }, 2000);
-        },
-        onHeaderStateChange: function(state) {
-          switch(state) {
-            case 'peek':
-              document.querySelector('#header').innerHTML = 'Pull to Refresh';
-              break;
-            case 'ready':
-              document.querySelector('#header').innerHTML = 'Release to Refresh';
-              break;
-            case 'loading':
-              document.querySelector('#header').innerHTML = 'Loading...';
-              break;
-          }
         },
       });
     </script>
