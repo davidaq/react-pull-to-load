@@ -350,7 +350,6 @@
   };
 
   WebScrollToLoad.createReactComponent = function(React, options) {
-    var useDefaultHeaderComponent = !options || !options.headerComponent;
     options = assign({
       headerComponent: function() {
          return React.createElement('div', { className: 'web-scroll-to-load-header-default' });
@@ -358,9 +357,15 @@
       footerComponent: function() {
          return React.createElement('div', { className: 'web-scroll-to-load-footer-default' });
       },
+      wrapperClassName: 'web-scroll-to-load-wrap-default',
     }, options);
 
     return React.createClass({
+      componentWillMount: function() {
+        this.state = {
+          headerState: 'peek',
+        };
+      },
       componentDidMount: function() {
         this.inst = WebScrollToLoad({
           wrap: this.refs.wrap,
@@ -369,6 +374,7 @@
           footer: this.refs.footer,
           onRefresh: this.props.onRefresh,
           onLoadMore: this.props.onLoadMore,
+          onHeaderStateChange: this.onHeaderStateChange,
         });
       },
       componentDidUpdate: function() {
@@ -377,19 +383,22 @@
       componentWillUnmount: function() {
         this.inst.destroy();
       },
+      onHeaderStateChange: function(state) {
+        this.setState({ headerState: state });
+      },
       render: function() {
         return React.createElement(
           'div',
           {
             ref: 'wrap',
-            className: useDefaultHeaderComponent ? 'web-scroll-to-load-wrap-default' : '',
+            className: options.wrapperClassName,
           },
           React.createElement(
             'div',
             {
               ref: 'header',
             },
-            React.createElement(options.headerComponent)
+            React.createElement(options.headerComponent, { headerState: this.state.headerState })
           ),
           React.createElement(
             'div',
