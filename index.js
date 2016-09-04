@@ -49,7 +49,7 @@
       '  transition: transform 0.3s;',
       '  -webkit-transition: -webkit-transform 0.3s;',
       '}',
-      '.web-scroll-to-load-header-ready.web-scroll-to-load-header-default::after {',
+      '.web-scroll-to-load-header-ready .web-scroll-to-load-header-default::after {',
       '  transform: rotate(180deg);',
       '  -webkit-transform: rotate(180deg);',
       '}',
@@ -63,7 +63,7 @@
       '  50% { transform: scale(0.5, 0.5); -webkit-transform: scale(0.5, 0.5); }',
       '  100% { transform: scale(1, 1); -webkit-transform: scale(1, 1); }',
       '}',
-      '.web-scroll-to-load-header-loading.web-scroll-to-load-header-default::after {',
+      '.web-scroll-to-load-header-loading .web-scroll-to-load-header-default::after {',
       '  content: "";',
       '  transition: none;',
       '  -webkit-transition: none;',
@@ -82,8 +82,8 @@
   }
 
   function getDom(obj, key, deft) {
-    if (!obj[key]) {
-      obj[key] = deft();
+    if (!obj[key] && deft) {
+        obj[key] = deft();
     }
     obj[key] = typeof obj[key] === 'string' ? document.querySelector(obj[key]) : obj[key];
     if (obj[key].className) {
@@ -107,17 +107,16 @@
   }
 
 
-  var defaultOptions = {
-    heightDiff: 0,
-    onHeaderStateChange: function(state, options) {
-      var cname = options.header.className || '';
-      cname = cname.replace(/\bweb-scroll-to-load-header-(peek|ready|loading)\b/g, '');
-      cname += ' web-scroll-to-load-header-' + state;
-      options.header.className = cname;
-    },
-  };
   function WebScrollToLoad(options) {
-    options = assign({}, defaultOptions, options);
+    options = assign({
+      heightDiff: 0,
+      onHeaderStateChange: function(state) {
+        var cname = options.header.className || '';
+        cname = cname.replace(/\bweb-scroll-to-load-header-(peek|ready|loading)\b/g, '');
+        cname += ' web-scroll-to-load-header-' + state;
+        options.header.className = cname;
+      },
+    }, options);
 
     injectCSS();
 
@@ -133,14 +132,18 @@
       return ret;
     });
     getDom(options, 'header', function() {
+      var deft = document.createElement('div');
+      deft.className = 'web-scroll-to-load-header-default';
       var ret = document.createElement('div');
-      ret.className = 'web-scroll-to-load-header-default';
+      ret.appendChild(deft);
       options.wrap.insertBefore(ret, options.content);
       return ret;
     });
     getDom(options, 'footer', function() {
+      var deft = document.createElement('div');
+      deft.className = 'web-scroll-to-load-footer-default';
       var ret = document.createElement('div');
-      ret.className = 'web-scroll-to-load-footer-default';
+      ret.appendChild(deft);
       options.wrap.appendChild(ret);
       return ret;
     });
@@ -152,13 +155,13 @@
     var destroyed = false;
     var loadingMore = false, noMore = typeof options.onLoadMore !== 'function';
     var startY = 0, dragState = null;
-    var startTouch;
     function onTouchStart(evt) {
-      if (!dragState) {
+      if (!dragState && options.wrap.scrollTop === 0 && typeof options.onRefresh === 'function') {
         var y = evt.touches ? evt.touches[0].pageY : evt.pageY;
-        startTouch = evt.touches;
         startY = y;
         dragState = 'begin';
+      } else {
+        dragState = 'scroll';
       }
     }
 
@@ -173,26 +176,6 @@
         if (options.wrap.scrollTop === 0 && dragDist > 0) {
           dragState = 'peek';
           options.onHeaderStateChange(dragState, options);
-          assign(options.wrap.style, {
-          });
-          if (startTouch) {
-            var nEvt = document.createEvent('TouchEvent');
-            nEvt.initTouchEvent(
-              'touchstart',
-              true,
-              true,
-              window,
-              1,
-              false,
-              false,
-              false,
-              false,
-              startTouch,
-              null,
-              null
-            );
-            options.wrap.dispatchEvent(nEvt);
-          }
         } else {
           dragState = 'scroll';
         }
@@ -293,7 +276,7 @@
     }
 
     function onScroll() {
-      if (noMore || loadingMore) {
+      if (typeof options.onLoadMore !== 'function' || noMore || loadingMore) {
         return;
       }
       if (options.wrap.scrollTop + options.wrap.offsetHeight * 2 > options.wrap.scrollHeight) {
@@ -324,7 +307,7 @@
         return;
       }
       assign(options.wrap.style, {
-        height: (window.innerHeight - options.heightDiff) + 'px',
+        height: (window.innerHeight - options.wrap.offsetTop - options.heightDiff) + 'px',
       });
       assign(options.header.style, {
         top: -options.header.offsetHeight + 'px',
@@ -366,20 +349,22 @@
     return ret;
   };
 
-  var defaultReactComponentOptions = {
-    headerComponent: 'div',
-    footerComponent: 'div',
-    bodyComponent: 'div',
-    wrapComponent: 'div',
-  };
   WebScrollToLoad.createReactComponent = function(React, options) {
-    options = assign({}, defaultReactComponentOptions, options);
+    var useDefaultHeaderComponent = !options || !options.headerComponent;
+    options = assign({
+      headerComponent: function() {
+         return React.createElement('div', { className: 'web-scroll-to-load-header-default' });
+      },
+      footerComponent: function() {
+         return React.createElement('div', { className: 'web-scroll-to-load-footer-default' });
+      },
+    }, options);
 
-    return React.createComponent({
+    return React.createClass({
       componentDidMount: function() {
         this.inst = WebScrollToLoad({
           wrap: this.refs.wrap,
-          body: this.refs.body,
+          content: this.refs.content,
           header: this.refs.header,
           footer: this.refs.footer,
           onRefresh: this.props.onRefresh,
@@ -394,28 +379,31 @@
       },
       render: function() {
         return React.createElement(
-          options.wrapComponent,
+          'div',
           {
             ref: 'wrap',
+            className: useDefaultHeaderComponent ? 'web-scroll-to-load-wrap-default' : '',
           },
           React.createElement(
-            options.headerComponent,
+            'div',
             {
               ref: 'header',
-            }
+            },
+            React.createElement(options.headerComponent)
           ),
           React.createElement(
-            options.bodyComponent,
+            'div',
             {
-              ref: 'body',
+              ref: 'content',
             },
             this.props.children
           ),
           React.createElement(
-            options.footerComponent,
+            'div',
             {
               ref: 'footer',
-            }
+            },
+            React.createElement(options.footerComponent)
           )
         );
       },
