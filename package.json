@@ -1,6 +1,6 @@
 {
   "name": "web-scroll-to-load",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A JavaScript library providing pull to refresh and scroll to load more for mobile web apps.",
   "main": "index.js",
   "scripts": {

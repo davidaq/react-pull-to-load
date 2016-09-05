@@ -312,7 +312,6 @@
       assign(options.header.style, {
         top: -options.header.offsetHeight + 'px',
       });
-      onScroll();
     };
 
     ret.destroy = function() {
